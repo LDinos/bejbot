@@ -4,6 +4,7 @@ const emoji_help = require('./Bot_modules/emoji_help.json');
 const fs = require('fs');
 const Bejeweled_Test = "693699875174613032"
 const prefix = '+';
+const gem_skins = ["r","w","g","y","p","o","b"] //all skins to select from
 var current_games = {}
 let ConvertToEmoji = require('./Bot_modules/emoji_table.js');
 
@@ -19,10 +20,10 @@ bot.on('ready', () =>
 
 bot.on('message', async msg =>
 {
-	if (!msg.content.startsWith(prefix) || msg.author.bot ) return; //|| msg.channel.id != Bejeweled_Test
-	const args = msg.content.slice(prefix.length).trim().split(/ +/);
+	if (!msg.content.startsWith(prefix) || msg.author.bot ) return; //dont do anything if the message doesn't start with the prefix
+	const args = msg.content.slice(prefix.length).trim().split(/ +/); //returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
 	let command = args.shift().toLowerCase();
-	command = command.slice(0, command.indexOf('\n') < 0 ? undefined : command.indexOf('\n'))
+	command = command.slice(0, command.indexOf('\n') < 0 ? undefined : command.indexOf('\n')) //returns the command, eg '+swap 1 1 left' will return "swap"
 	console.log(command)
 	if (command === 'help'){
 		const helptable = require('./Bot_modules/help_table.json')
@@ -31,24 +32,17 @@ bot.on('message', async msg =>
 	else if (command === 'board'){
 		if (args.length === 0) {msg.channel.send(emoji_help.help); return;}
 		const splitted_msg =  msg.content.slice(prefix.length + command.length).trim().split("\n");
-		let msg_returned = ""
-		for(let i = 0; i < splitted_msg.length; i++) //gem rows
-		{
-			for(let j = 0; j < splitted_msg[i].length; j++) //each row character
-			{
-				if (splitted_msg[i][j] != " ")
-				{
-					let m = splitted_msg[i][j]
-					if (j != splitted_msg[i].length-1) if (splitted_msg[i][j+1] != " ") {m += splitted_msg[i][j+1]; j++}
-					msg_returned += ConvertToEmoji(m);
-					console.log(m)
-				}
-				else msg_returned += " "
+		let msg_returned = message_get_board(splitted_msg)
+		msg.channel.send(msg_returned).then(msg.delete())
+	}
+	else if (command === 'replay'){
+		if (current_games[msg.channel.id] != undefined){
+			if (current_games[msg.channel.id].replay.length != 0){
+				current_games[msg.channel.id].board = current_games[msg.channel.id].replay[0]
+				current_games[msg.channel.id].state = "moving"
+				current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
 			}
-			msg_returned += "\n"
-		}
-		msg.channel.send(msg_returned)//.then(message => setTimeout(() => {message.edit("siga min elitourgisei")}, 5000))
-		console.log(splitted_msg);
+		}else msg.channel.send("No game is created in this channel! Use ```+start_game```")
 	}
 	else if (command === 'start_game'){
 		current_games[msg.channel.id] = {
@@ -61,9 +55,12 @@ bot.on('message', async msg =>
 					col : 0,
 				}
 			},
-			board : initialize_board(8, 8)
+			board : initialize_board(8, 8),
+			state : "stable", //state of board. stable = all gems are static, moving = gems are cascading / being swapped at the moment
+			replay : [],
+			current_message : ""
 		}
-		let return_message = messagify_board(msg, ""); 
+		let return_message = messagify_board(msg, "\n"); 
 		msg.channel.send(return_message)
 	}
 	else if (command === 'swap'){
@@ -74,10 +71,27 @@ bot.on('message', async msg =>
 					const ycoord = args[0] - (args[2] == "up") + (args[2] == "down")
 					if (xcoord <= 8 && xcoord > 0 && ycoord <= 8 && ycoord > 0){
 						if (xcoord != args[0] || ycoord != args[1]){ //if the direction word is none of the 4 (up,down etc..), the gem wont swap anywhere
+
 							let gem1 = current_games[msg.channel.id].board[args[0]-1][args[1]-1]
 							current_games[msg.channel.id].board[args[0]-1][args[1]-1] = current_games[msg.channel.id].board[ycoord-1][xcoord-1]
 							current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
-							msg.channel.send(messagify_board(msg, ""))
+
+							let matches_found = execute_matches(current_games[msg.channel.id].board)
+							if (matches_found == 0){ //swap back
+								gem1 = current_games[msg.channel.id].board[args[0]-1][args[1]-1]
+								current_games[msg.channel.id].board[args[0]-1][args[1]-1] = current_games[msg.channel.id].board[ycoord-1][xcoord-1]
+								current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
+								msg.channel.send("No matches found with that swap!")
+							}
+							else {
+								msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
+									current_games[msg.channel.id].current_message = msg_sent
+									current_games[msg.channel.id].state = "moving"
+									current_games[msg.channel.id].replay = []
+									current_games[msg.channel.id].replay.push(current_games[msg.channel.id].board)
+									setTimeout(spawn_new_gems,2000,msg)
+								})
+							}
 						}
 						else msg.channel.send("The format of command is ```+swap [row] [collumn] [up/down/left/right]```")
 					}
@@ -92,11 +106,10 @@ bot.on('message', async msg =>
 	else msg.channel.send(`Can't understand, ${msg.author}`)
 });
 
-function initialize_board(rows, cols) {
+function initialize_board(rows, cols) { //Create board for the first time
 	let board = [];
 	do {
 		board = [];
-		const gem_skins = ["r","w","g","y","p","o","b"]
 		for(let i = 0; i < 8; i++){
 			board[i] = []
 			for(let j = 0; j < 8; j++) {
@@ -126,16 +139,93 @@ function board_has_matches(board) { //check if there are matches already in the 
 	return false;
 }
 
-function messagify_board(msg, message){
+function execute_matches(board){
+	let matches_found = 0;
 	for(let i = 0; i < 8; i++){
-		message += "\n"
-		for(let j = 0; j < 8; j++){
-			const gem = current_games[msg.channel.id].board[i][j]
-			message += ConvertToEmoji(gem.skin + gem.power) + " "
+		let n_hor = 1;
+		let n_ver = 1;
+		let is_same_color = false;
+		for(let j = 1; j < 8; j++){
+
+			is_same_color = false;
+			if (board[i][j].skin === board[i][j-1].skin) {n_hor++; is_same_color = true;}
+			if (((j==7 && is_same_color) || (!is_same_color)) && n_hor >= 3) { //execute horizontal matches here
+				for(let k = j-n_hor+is_same_color; k < j+is_same_color; k++){
+					board[i][k].skin = -1 //empty cell
+				}
+				matches_found++
+				n_hor = 1
+			}
+			else if (!is_same_color) n_hor = 1
+
+			is_same_color = false;
+			if (board[j][i].skin === board[j-1][i].skin) {n_ver++; is_same_color = true;}
+			if (((j==7 && is_same_color) || (!is_same_color)) && n_ver >= 3) { //execute vertical matches here
+				for(let k = j-n_ver+is_same_color; k < j+is_same_color; k++){
+					board[k][i].skin = -1 //empty cell
+				}
+				matches_found++
+				n_ver = 1
+			}
+			else if (!is_same_color) n_ver = 1			
 		}
 	}
-	return message;
+	return matches_found;
 }
-function get_random(end_range) {
+
+function message_get_board(message){
+	let msg_returned =""
+	for(let i = 0; i < message.length; i++) //gem rows
+		{
+			for(let j = 0; j < message[i].length; j++) //each row character
+			{
+				if (message[i][j] != " ")
+				{
+					let m = message[i][j]
+					if (j != message[i].length-1) if (message[i][j+1] != " ") {m += message[i][j+1]; j++}
+					msg_returned += ConvertToEmoji(m);
+					console.log(m)
+				}
+				else msg_returned += " "
+			}
+			msg_returned += "\n"
+		}
+	return msg_returned;
+}
+
+function messagify_board(msg, initial_text){ //Take all gems and write them in a message format string
+	for(let i = 0; i < 8; i++){
+		initial_text += "\n"
+		for(let j = 0; j < 8; j++){
+			const gem = current_games[msg.channel.id].board[i][j]
+			initial_text += ConvertToEmoji(gem.skin + gem.power) + " "
+		}
+	}
+	return initial_text;
+}
+
+function spawn_new_gems(msg){
+	for(let i = 0; i < 8; i++){
+		for(let j = 0; j < 8; j++){
+			if (current_games[msg.channel.id].board[i][j].skin === -1) {
+				current_games[msg.channel.id].board[i][j].skin = gem_skins[get_random(gem_skins.length)]
+			}
+		}
+	}
+	current_games[msg.channel.id].replay.push(current_games[msg.channel.id].board)
+	current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(check_cascade_matches, 2000, msg))
+	//msg.channel.send(messagify_board(msg, "\n"))
+	//setTimeout(check_cascade_matches, 2000, msg)
+}
+function check_cascade_matches(msg){
+	const matches_found = execute_matches(current_games[msg.channel.id].board)
+		if (matches_found){
+			current_games[msg.channel.id].replay.push(current_games[msg.channel.id].board)
+			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
+			//msg.channel.send(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
+		}
+		else current_games[msg.channel.id].state = "stable"
+}
+function get_random(end_range) { //find random number between 0 and end_range-1
 	return Math.floor(Math.random() * end_range);
 }
