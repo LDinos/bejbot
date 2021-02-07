@@ -42,7 +42,8 @@ bot.on('message', async msg =>
 				current_games[msg.channel.id].state = "moving"
 				current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
 			}
-		}else msg.channel.send("No game is created in this channel! Use ```+start_game```")
+		}
+		else msg.channel.send("No game is created in this channel! Use ```+start_game```")
 	}
 	else if (command === 'start_game'){
 		current_games[msg.channel.id] = {
@@ -55,10 +56,10 @@ bot.on('message', async msg =>
 					col : 0,
 				}
 			},
-			board : initialize_board(8, 8),
-			state : "stable", //state of board. stable = all gems are static, moving = gems are cascading / being swapped at the moment
-			replay : [],
-			current_message : ""
+			board : initialize_board(8, 8), //the board itself
+			state : "stable", //state of board physics. stable = all gems are static, moving = gems are cascading / being swapped at the moment
+			replay : [], //each board state is saved in an array so it can be replayed later on to see how the cascades happened
+			current_message : "" //the current message that displays the board. We save it here so we can edit it!
 		}
 		let return_message = messagify_board(msg, "\n"); 
 		msg.channel.send(return_message)
@@ -209,11 +210,19 @@ function messagify_board(msg, initial_text){ //Take all gems and write them in a
 }
 
 function spawn_new_gems(msg){
-	for(let i = 0; i < 8; i++){
-		for(let j = 0; j < 8; j++){
-			if (current_games[msg.channel.id].board[i][j].skin === -1) {
-				current_games[msg.channel.id].board[i][j].skin = gem_skins[get_random(gem_skins.length)]
+	for(let j = 0; j < 8; j++){
+		let k_end = 7;
+		for(let i = k_end; i >= 0; i--){
+			if (current_games[msg.channel.id].board[i][j].skin != -1) {
+				const temp = current_games[msg.channel.id].board[k_end][j]
+				current_games[msg.channel.id].board[k_end][j] = current_games[msg.channel.id].board[i][j]
+				current_games[msg.channel.id].board[i][j] = temp
+				k_end--
 			}
+		}
+		for(let k = 0; k < k_end+1; k++) {
+			current_games[msg.channel.id].board[k][j].skin = gem_skins[get_random(gem_skins.length)]
+			current_games[msg.channel.id].board[k][j].power = ""
 		}
 	}
 	current_games[msg.channel.id].replay.push(current_games[msg.channel.id].board)
