@@ -110,7 +110,8 @@ bot.on('message', async msg =>
 				current_message : "" //the current message that displays the board. We save it here so we can edit it!
 			}
 			if (args.length === 1){
-				if (!isNaN(args[0]) && args[0] < 8 && args[0] > 2) current_games[msg.channel.id].rules.num_skins = args[0]
+				
+				if (!isNaN(args[0]) && args[0] < 8 && args[0] > 2) {args[0] = Math.trunc(args[0]); current_games[msg.channel.id].rules.num_skins = args[0]}
 				else msg.channel.send("Argument must be a number from 3 to 7. Setting game to 7 skins by default:")
 			}
 			current_games[msg.channel.id].board = initialize_board(msg, 8, 8)
@@ -120,6 +121,8 @@ bot.on('message', async msg =>
 		case 'swap':
 			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 			if (args.length === 3){
+				args[0] = Math.trunc(args[0])
+				args[1] = Math.trunc(args[1])
 				var xcoord = args[1] - (args[2] == "left") + (args[2] == "right")
 				var ycoord = args[0] - (args[2] == "up") + (args[2] == "down")
 				const canswap = check_swap_command(msg, args, xcoord, ycoord)
@@ -136,7 +139,7 @@ bot.on('message', async msg =>
 						msg.channel.send("No matches found with that swap!")
 					}
 					else {
-						current_games[msg.channel.id].stats.cascades = 0
+						current_games[msg.channel.id].stats.cascades = 1
 						current_games[msg.channel.id].state = "moving"
 						current_games[msg.channel.id].stats.last_move.row = args[0]
 						current_games[msg.channel.id].stats.last_move.col = args[1]
@@ -186,8 +189,8 @@ function check_swap_command(msg, args, xcoord, ycoord){ //check if swapping is p
 		else return "Arguments row and collumn must not exceed or fall short of board size"
 	}
 	else return "You need to start a game first before trying to swap! Type ```+start_game```"
-
 }
+
 function board_has_matches(board) { //check if there are matches already in the board at its initial spawn
 	for(let i = 0; i < 8; i++){
 		let n_hor = 1;
@@ -218,7 +221,6 @@ function execute_matches(msg, board){ //find matches and destroy the gems that g
 			if (board[i][j].skin === board[i][j-1].skin) {n_hor++; is_same_color = true;}
 			if (((j==7 && is_same_color) || (!is_same_color)) && n_hor >= 3) { //execute horizontal matches here
 				for(let k = j-n_hor+is_same_color; k < j+is_same_color; k++){
-					//board[i][k].skin = -1 //empty cell
 					matched_gems.push(board[i][k])
 				}
 				matches_found++
@@ -230,7 +232,6 @@ function execute_matches(msg, board){ //find matches and destroy the gems that g
 			if (board[j][i].skin === board[j-1][i].skin) {n_ver++; is_same_color = true;}
 			if (((j==7 && is_same_color) || (!is_same_color)) && n_ver >= 3) { //execute vertical matches here
 				for(let k = j-n_ver+is_same_color; k < j+is_same_color; k++){
-					//board[k][i].skin = -1 //empty cell
 					matched_gems.push(board[k][i])
 				}
 				matches_found++
