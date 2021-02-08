@@ -81,6 +81,7 @@ bot.on('message', async msg =>
 		case 'start_game':
 		case 'start':
 		case 'restart':
+		case 'play':
 			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 			current_games[msg.channel.id] = {
 				stats : {
@@ -120,9 +121,9 @@ bot.on('message', async msg =>
 						msg.channel.send("No matches found with that swap!")
 					}
 					else {
+						current_games[msg.channel.id].state = "moving"
 						msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
 							current_games[msg.channel.id].current_message = msg_sent
-							current_games[msg.channel.id].state = "moving"
 							current_games[msg.channel.id].replay = []
 							add_replay_frame(msg)
 							setTimeout(spawn_new_gems,2000,msg)
@@ -246,6 +247,10 @@ function messagify_board(msg, initial_text){ //Take all gems and write them in a
 			initial_text += ConvertToEmoji(gem.skin + gem.power) + " "
 		}
 	}
+	let state = "Ready!"
+	if (current_games[msg.channel.id].state === "moving") state = "Standby..."
+	else if (current_games[msg.channel.id].state === "replay") state = "Replaying..."
+	initial_text+="\n"+state
 	return initial_text;
 }
 
@@ -296,7 +301,11 @@ function check_cascade_matches(msg){ //check if there are cascades after new gem
 			add_replay_frame(msg)
 			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
 		}
-		else current_games[msg.channel.id].state = "stable"
+		else
+		{
+			current_games[msg.channel.id].state = "stable"
+			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n"))
+		}
 	}
 }
 function add_replay_frame(msg){ //add board on last position of replay array
