@@ -36,16 +36,22 @@ bot.on('message', async msg =>
 		msg.channel.send(msg_returned).then(msg.delete())
 	}
 	else if (command === 'replay'){
+		if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 		if (current_games[msg.channel.id] != undefined){
 			if (current_games[msg.channel.id].replay.length != 0){
+				console.log(current_games[msg.channel.id].replay.length)
 				current_games[msg.channel.id].board = current_games[msg.channel.id].replay[0]
-				current_games[msg.channel.id].state = "moving"
-				current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
+				current_games[msg.channel.id].state = "replay"
+				msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
+					current_games[msg.channel.id].current_message = msg_sent
+					setTimeout(spawn_new_gems,2000,msg)
+				})
 			}
 		}
 		else msg.channel.send("No game is created in this channel! Use ```+start_game```")
 	}
 	else if (command === 'start_game'){
+		if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 		current_games[msg.channel.id] = {
 			stats : {
 				score : 0,
@@ -57,39 +63,41 @@ bot.on('message', async msg =>
 				}
 			},
 			board : initialize_board(8, 8), //the board itself
-			state : "stable", //state of board physics. stable = all gems are static, moving = gems are cascading / being swapped at the moment
+			state : "stable", //state of board physics. stable = all gems are static, moving = gems are cascading / being swapped at the moment, replay = being replayed
 			replay : [], //each board state is saved in an array so it can be replayed later on to see how the cascades happened
+			current_replay_frame : 0, //while watching a replay, which frame are we on to right now?
 			current_message : "" //the current message that displays the board. We save it here so we can edit it!
 		}
 		let return_message = messagify_board(msg, "\n"); 
 		msg.channel.send(return_message)
 	}
 	else if (command === 'swap'){
+		if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 		if (args.length === 3){
 			var xcoord = args[1] - (args[2] == "left") + (args[2] == "right")
 			var ycoord = args[0] - (args[2] == "up") + (args[2] == "down")
 			const canswap = check_swap_command(msg, args, xcoord, ycoord)
 			if (canswap === "Swap okay"){
 				let gem1 = current_games[msg.channel.id].board[args[0]-1][args[1]-1]
-							current_games[msg.channel.id].board[args[0]-1][args[1]-1] = current_games[msg.channel.id].board[ycoord-1][xcoord-1]
-							current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
+				current_games[msg.channel.id].board[args[0]-1][args[1]-1] = current_games[msg.channel.id].board[ycoord-1][xcoord-1]
+				current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
 
-							let matches_found = execute_matches(current_games[msg.channel.id].board)
-							if (matches_found == 0){ //swap back
-								gem1 = current_games[msg.channel.id].board[args[0]-1][args[1]-1]
-								current_games[msg.channel.id].board[args[0]-1][args[1]-1] = current_games[msg.channel.id].board[ycoord-1][xcoord-1]
-								current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
-								msg.channel.send("No matches found with that swap!")
-							}
-							else {
-								msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
-									current_games[msg.channel.id].current_message = msg_sent
-									current_games[msg.channel.id].state = "moving"
-									current_games[msg.channel.id].replay = []
-									current_games[msg.channel.id].replay.push(current_games[msg.channel.id].board)
-									setTimeout(spawn_new_gems,2000,msg)
-								})
-							}
+				let matches_found = execute_matches(current_games[msg.channel.id].board)
+				if (matches_found == 0){ //swap back
+					gem1 = current_games[msg.channel.id].board[args[0]-1][args[1]-1]
+					current_games[msg.channel.id].board[args[0]-1][args[1]-1] = current_games[msg.channel.id].board[ycoord-1][xcoord-1]
+					current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
+					msg.channel.send("No matches found with that swap!")
+				}
+				else {
+					msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
+						current_games[msg.channel.id].current_message = msg_sent
+						current_games[msg.channel.id].state = "moving"
+						current_games[msg.channel.id].replay = []
+						add_replay_frame(msg)
+						setTimeout(spawn_new_gems,2000,msg)
+					})
+				}
 			}
 			else msg.channel.send(canswap)
 		} else msg.channel.send("Command format is ```+swap [row] [collumng] [left/right/up/down]```")
@@ -112,7 +120,7 @@ function initialize_board(rows, cols) { //Create board for the first time
 
 	return board;
 }
-function check_swap_command(msg, args, xcoord, ycoord){
+function check_swap_command(msg, args, xcoord, ycoord){ //check if swapping is possible
 	if (current_games[msg.channel.id] != undefined){
 		if (args[0] <= 8 && args[0] > 0 && args[1] <= 8 && args[1] > 0){
 			if (xcoord <= 8 && xcoord > 0 && ycoord <= 8 && ycoord > 0){
@@ -145,7 +153,7 @@ function board_has_matches(board) { //check if there are matches already in the 
 	return false;
 }
 
-function execute_matches(board){
+function execute_matches(board){ //find matches and destroy the gems that got matched
 	let matches_found = 0;
 	for(let i = 0; i < 8; i++){
 		let n_hor = 1;
@@ -179,7 +187,7 @@ function execute_matches(board){
 	return matches_found;
 }
 
-function message_get_board(message){
+function message_get_board(message){ //create a board depending on what the user has written (used in +board)
 	let msg_returned =""
 	for(let i = 0; i < message.length; i++) //gem rows
 		{
@@ -209,32 +217,58 @@ function messagify_board(msg, initial_text){ //Take all gems and write them in a
 	return initial_text;
 }
 
-function spawn_new_gems(msg){
-	for(let j = 0; j < 8; j++){
-		let k_end = 7;
-		for(let i = k_end; i >= 0; i--){
-			if (current_games[msg.channel.id].board[i][j].skin != -1) {
-				const temp = current_games[msg.channel.id].board[k_end][j]
-				current_games[msg.channel.id].board[k_end][j] = current_games[msg.channel.id].board[i][j]
-				current_games[msg.channel.id].board[i][j] = temp
-				k_end--
-			}
+function spawn_new_gems(msg){ //spawn new gems after a match happened
+	if (current_games[msg.channel.id].state === "replay"){
+		const frame = current_games[msg.channel.id].current_replay_frame++
+		current_games[msg.channel.id].board = current_games[msg.channel.id].replay[frame]
+		if (frame < current_games[msg.channel.id].replay.length-1) {
+			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(check_cascade_matches, 2000, msg))
 		}
-		for(let k = 0; k < k_end+1; k++) {
-			current_games[msg.channel.id].board[k][j].skin = gem_skins[get_random(gem_skins.length)]
-			current_games[msg.channel.id].board[k][j].power = ""
+		else {
+			current_games[msg.channel.id].state = "stable"
+			current_games[msg.channel.id].current_replay_frame = 0
 		}
 	}
-	current_games[msg.channel.id].replay.push(current_games[msg.channel.id].board)
-	current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(check_cascade_matches, 2000, msg))
+	else 
+	{
+		for(let j = 0; j < 8; j++){
+			let k_end = 7;
+			for(let i = k_end; i >= 0; i--){
+				if (current_games[msg.channel.id].board[i][j].skin != -1) {
+					const temp = current_games[msg.channel.id].board[k_end][j]
+					current_games[msg.channel.id].board[k_end][j] = current_games[msg.channel.id].board[i][j]
+					current_games[msg.channel.id].board[i][j] = temp
+					k_end--
+				}
+			}
+			for(let k = 0; k < k_end+1; k++) {
+				current_games[msg.channel.id].board[k][j].skin = gem_skins[get_random(gem_skins.length)]
+				current_games[msg.channel.id].board[k][j].power = ""
+			}
+		}
+		add_replay_frame(msg)
+		current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(check_cascade_matches, 2000, msg))
+	}
 }
-function check_cascade_matches(msg){
-	const matches_found = execute_matches(current_games[msg.channel.id].board)
+function check_cascade_matches(msg){ //check if there are cascades after new gems spawned after a match
+	if (current_games[msg.channel.id].state === "replay"){
+		const frame = current_games[msg.channel.id].current_replay_frame++
+		current_games[msg.channel.id].board = current_games[msg.channel.id].replay[frame]
+		current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
+	}
+	else
+	{
+		const matches_found = execute_matches(current_games[msg.channel.id].board)
 		if (matches_found){
-			current_games[msg.channel.id].replay.push(current_games[msg.channel.id].board)
+			add_replay_frame(msg)
 			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, 2000, msg))
 		}
 		else current_games[msg.channel.id].state = "stable"
+	}
+}
+function add_replay_frame(msg){ //add board on last position of replay array
+	const len = current_games[msg.channel.id].replay.length
+	current_games[msg.channel.id].replay[len] = current_games[msg.channel.id].board
 }
 function get_random(end_range) { //find random number between 0 and end_range-1
 	return Math.floor(Math.random() * end_range);
