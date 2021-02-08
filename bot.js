@@ -44,9 +44,11 @@ bot.on('message', async msg =>
 				current_games[msg.channel.id].state = "replay"
 				msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
 					current_games[msg.channel.id].current_message = msg_sent
+					current_games[msg.channel.id].current_replay_frame++
 					setTimeout(spawn_new_gems,2000,msg)
 				})
 			}
+			else msg.channel.send("No moves were made for replay to work here")
 		}
 		else msg.channel.send("No game is created in this channel! Use ```+start_game```")
 	}
@@ -120,6 +122,7 @@ function initialize_board(rows, cols) { //Create board for the first time
 
 	return board;
 }
+
 function check_swap_command(msg, args, xcoord, ycoord){ //check if swapping is possible
 	if (current_games[msg.channel.id] != undefined){
 		if (args[0] <= 8 && args[0] > 0 && args[1] <= 8 && args[1] > 0){
@@ -227,6 +230,7 @@ function spawn_new_gems(msg){ //spawn new gems after a match happened
 		else {
 			current_games[msg.channel.id].state = "stable"
 			current_games[msg.channel.id].current_replay_frame = 0
+			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n"))
 		}
 	}
 	else 
@@ -268,7 +272,7 @@ function check_cascade_matches(msg){ //check if there are cascades after new gem
 }
 function add_replay_frame(msg){ //add board on last position of replay array
 	const len = current_games[msg.channel.id].replay.length
-	current_games[msg.channel.id].replay[len] = current_games[msg.channel.id].board
+	current_games[msg.channel.id].replay[len] = JSON.parse(JSON.stringify(current_games[msg.channel.id].board))//current_games[msg.channel.id].board.slice()
 }
 function get_random(end_range) { //find random number between 0 and end_range-1
 	return Math.floor(Math.random() * end_range);
