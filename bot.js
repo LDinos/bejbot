@@ -1,8 +1,11 @@
 const Discord = require('discord.js');
+const mergeImages = require('merge-images')
+const { Canvas, Image } = require('canvas');
+const CreateBoardImage = require('./Bot_modules/imagecreator')
 const auth = require('./auth.json');
 const emoji_help = require('./Bot_modules/emoji_help.json');
 const fs = require('fs');
-const Bejeweled_Test = "693699875174613032"
+const Bejeweled_Test = "694241477160861796"
 const prefix = '+';
 const delay = 2000
 const gem_skins = ["r","w","g","y","p","o","b"] //all skins to select from
@@ -22,8 +25,11 @@ bot.on('ready', () =>
 
 bot.on('message', async msg =>
 {
+
 	if (!msg.content.startsWith(prefix) || msg.author.bot ) return; //dont do anything if the message doesn't start with the prefix
-	if (msg.channel.id != Bejeweled_Test && msg.channel.id != "694241477160861796") return console.log(msg.channel.id); //msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!");
+	if (msg.channel.id != Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!")
+	if (!msg.guild.me.permissionsIn(msg.channel).has('MANAGE_CHANNELS')) return msg.channel.send("I can't be used here! Maybe try the channels that were made for me?")
+
 	const args = msg.content.slice(prefix.length).trim().split(/ +/); //returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
 	let command = args.shift().toLowerCase();
 	command = command.slice(0, command.indexOf('\n') < 0 ? undefined : command.indexOf('\n')) //returns the command, eg '+swap 1 1 left' will return "swap"
@@ -83,12 +89,24 @@ bot.on('message', async msg =>
 			}
 			else msg.channel.send("No game is created in this channel! Use ```+start_game```")
 		break;
+		case 'stop_game':
+		case 'stop':
+			if (current_games[msg.channel.id] != undefined){
+				if (current_games[msg.channel.id].creator == msg.author || msg.member.hasPermission('MANAGE_MESSAGES')){
+					current_games[msg.channel.id] = undefined
+					msg.channel.send("Game is destroyed")
+				}
+				else msg.channel.send(`Only moderators/admins or the game creator ${current_games[msg.channel.id].creator.username} can stop the current game`)
+			}
+			else msg.channel.send("No current games found to stop!")
+			break;
 		case 'start_game':
 		case 'start':
 		case 'restart':
 		case 'play':
-			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
+			if (current_games[msg.channel.id] != undefined) return msg.channel.send("You must first finish the current game with ```+stop_game```")
 			current_games[msg.channel.id] = {
+				creator : msg.author,
 				rules :{
 					num_skins : 7,
 					allow_powered_gems : false,
@@ -99,6 +117,8 @@ bot.on('message', async msg =>
 					cascades : 0,
 					total_moves : 0,
 					last_move : {
+						user : "None",
+						user_avatar : "",
 						row : 0,
 						col : 0,
 					}
@@ -115,6 +135,7 @@ bot.on('message', async msg =>
 				else msg.channel.send("Argument must be a number from 3 to 7. Setting game to 7 skins by default:")
 			}
 			current_games[msg.channel.id].board = initialize_board(msg, 8, 8)
+			//CreateBoardImage(current_games[msg.channel.id].board)
 			let return_message = messagify_board(msg, "\n"); 
 			msg.channel.send(return_message)
 		break;
@@ -141,6 +162,8 @@ bot.on('message', async msg =>
 					else {
 						current_games[msg.channel.id].stats.cascades = 1
 						current_games[msg.channel.id].state = "moving"
+						current_games[msg.channel.id].stats.last_move.user = msg.author.username
+						current_games[msg.channel.id].stats.last_move.user_avatar = msg.author.avatarURL()
 						current_games[msg.channel.id].stats.last_move.row = args[0]
 						current_games[msg.channel.id].stats.last_move.col = args[1]
 						msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
@@ -280,9 +303,11 @@ function messagify_board(msg, initial_text){ //Take all gems and write them in a
 	.addFields(
 		{ name: 'Score', value: current_games[msg.channel.id].stats.score, inline: true },
 		{ name: 'Cascades', value: current_games[msg.channel.id].stats.cascades, inline: true },
-		{ name: 'Last move', value: current_games[msg.channel.id].stats.last_move.row + " , " +current_games[msg.channel.id].stats.last_move.col, inline: true }
+		{ name: 'Last move', value: current_games[msg.channel.id].stats.last_move.row + " , " +current_games[msg.channel.id].stats.last_move.col, inline: true },
+		{ name: 'State', value: state}
 	)
-	.setAuthor(state)
+	.setAuthor(`Current game created by ${current_games[msg.channel.id].creator.username}`, current_games[msg.channel.id].creator.avatarURL())
+	.setFooter(`Last move made by ${current_games[msg.channel.id].stats.last_move.user}`, current_games[msg.channel.id].stats.last_move.user_avatar)
 	return emb;
 }
 

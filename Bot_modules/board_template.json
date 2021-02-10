@@ -1,0 +1,24 @@
+{
+    "creator" : "Unknown",
+    "rules" :{
+        "num_skins" : 7,
+        "allow_powered_gems" : false,
+        "twist_mode" : false
+    },
+    "stats" : {
+        "score" : 0,
+        "cascades" : 0,
+        "total_moves" : 0,
+        "last_move" : {
+           " user" : "None",
+            "user_avatar" : "",
+            "row" : 0,
+            "col" : 0
+        }
+    },
+    "board" : [],
+    "state" : "stable", 
+    "replay" : [], 
+    "current_replay_frame" : 0, 
+    "current_message" : ""
+}
