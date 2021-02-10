@@ -5,13 +5,15 @@ const CreateBoardImage = require('./Bot_modules/imagecreator')
 const auth = require('./auth.json');
 const emoji_help = require('./Bot_modules/emoji_help.json');
 const fs = require('fs');
-const Bejeweled_Test = "694241477160861796"
 const prefix = '+';
 const delay = 2000
 const gem_skins = ["r","w","g","y","p","o","b"] //all skins to select from
 var current_games = {}
 let ConvertToEmoji = require('./Bot_modules/emoji_table.js');
 let ConvertToLetter = require('./Bot_modules/letter_table')
+let board_template = require('./Bot_modules/board_template.json')
+const debug = false; //if true, the bot will work only in a specific channel, with the id of Bejeweled_Test below
+const Bejeweled_Test = "694241477160861796"
 
 // Initialize Discord Bot
 const bot = new Discord.Client();
@@ -27,7 +29,7 @@ bot.on('message', async msg =>
 {
 
 	if (!msg.content.startsWith(prefix) || msg.author.bot ) return; //dont do anything if the message doesn't start with the prefix
-	if (msg.channel.id != Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!")
+	if (debug) if (msg.channel.id != Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!")
 	if (!msg.guild.me.permissionsIn(msg.channel).has('MANAGE_CHANNELS')) return msg.channel.send("I can't be used here! Maybe try the channels that were made for me?")
 
 	const args = msg.content.slice(prefix.length).trim().split(/ +/); //returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
@@ -41,7 +43,7 @@ bot.on('message', async msg =>
 		case 'list':
 			const helptable = require('./Bot_modules/help_table.json')
 			msg.channel.send(helptable.help)
-		break;
+			break;
 		case 'text':
 		case 'say':
 			let final_msg = ""
@@ -55,13 +57,13 @@ bot.on('message', async msg =>
 				if (err) msg.channel.send("Message is too long to write!")
 				else msg.channel.send(final_msg)
 			})
-		break;
+			break;
 		case 'show':
 		case 'show_board':
 			if (current_games[msg.channel.id] != undefined) msg.channel.send(messagify_board(msg, "\n"))
 			else msg.channel.send("No games are present. Use ```+start_game```")
 			
-		break;
+			break;
 		case 'board':
 			if (args.length === 0) {msg.channel.send(emoji_help.help); return;}
 			const splitted_msg =  msg.content.slice(prefix.length + command.length).trim().split("\n");
@@ -71,7 +73,7 @@ bot.on('message', async msg =>
 				else msg.channel.send(msg_returned)
 			})
 				
-		break;
+			break;
 		case 'replay':
 			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 			if (current_games[msg.channel.id] != undefined){
@@ -88,7 +90,7 @@ bot.on('message', async msg =>
 				else msg.channel.send("No moves were made for replay to work here")
 			}
 			else msg.channel.send("No game is created in this channel! Use ```+start_game```")
-		break;
+			break;
 		case 'stop_game':
 		case 'stop':
 			if (current_games[msg.channel.id] != undefined){
@@ -105,30 +107,8 @@ bot.on('message', async msg =>
 		case 'restart':
 		case 'play':
 			if (current_games[msg.channel.id] != undefined) return msg.channel.send("You must first finish the current game with ```+stop_game```")
-			current_games[msg.channel.id] = {
-				creator : msg.author,
-				rules :{
-					num_skins : 7,
-					allow_powered_gems : false,
-					twist_mode : false
-				},
-				stats : {
-					score : 0,
-					cascades : 0,
-					total_moves : 0,
-					last_move : {
-						user : "None",
-						user_avatar : "",
-						row : 0,
-						col : 0,
-					}
-				},
-				board : [],//initialize_board(8, 8), //the board itself
-				state : "stable", //state of board physics. stable = all gems are static, moving = gems are cascading / being swapped at the moment, replay = being replayed
-				replay : [], //each board state is saved in an array so it can be replayed later on to see how the cascades happened
-				current_replay_frame : 0, //while watching a replay, which frame are we on to right now?
-				current_message : "" //the current message that displays the board. We save it here so we can edit it!
-			}
+			current_games[msg.channel.id] = board_template
+			board_template.creator = msg.author
 			if (args.length === 1){
 				
 				if (!isNaN(args[0]) && args[0] < 8 && args[0] > 2) {args[0] = Math.trunc(args[0]); current_games[msg.channel.id].rules.num_skins = args[0]}
@@ -138,7 +118,7 @@ bot.on('message', async msg =>
 			//CreateBoardImage(current_games[msg.channel.id].board)
 			let return_message = messagify_board(msg, "\n"); 
 			msg.channel.send(return_message)
-		break;
+			break;
 		case 'swap':
 			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 			if (args.length === 3){
@@ -176,7 +156,7 @@ bot.on('message', async msg =>
 				}
 				else msg.channel.send(canswap)
 			} else msg.channel.send("Command format is ```+swap [row] [collumng] [left/right/up/down]```")
-		break;
+			break;
 		default: msg.channel.send(`Can't understand, ${msg.author}`); break;
 	}
 });
