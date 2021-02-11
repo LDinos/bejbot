@@ -2,7 +2,7 @@ const mergeImages = require('merge-images')
 const { Canvas, Image } = require('canvas');
 const fs = require('fs')
 
-module.exports = function create_board_image(board_arr)
+module.exports = async function create_board_image(board_arr)
 {
     let image_arr =[{
       src: './Bot_modules/textures/bl.png', x: 0, y: 0}
@@ -29,21 +29,5 @@ module.exports = function create_board_image(board_arr)
     });
     
 }
-    // data:image/png;base64,iVBORw0KGgoAA...
 
-    // module.exports = mergeImages([
-    //   { src: 'bl.png', x: 0, y: 0 },
-    //   { src: 'g_blue.png', x: 0, y: 0 },
-    //   { src: 'g_orange.png', x: 64, y: 0 }
-    // ],{
-    //   Canvas: Canvas,
-    //   Image: Image
-    // }).then(b64 => {
-    //   var data = b64.replace(/^data:image\/\w+;base64,/, "");
-    //   var buf = new Buffer.from(data, 'base64');
-    //   fs.writeFile('image.png', buf,function(err, result) {
-    //     if(err){console.log('error', err);}
-    //   });
-    // });
-    //   // data:image/png;base64,iVBORw0KGgoAA...
   

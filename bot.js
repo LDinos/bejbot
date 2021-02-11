@@ -11,8 +11,7 @@ const gem_skins = ["r","w","g","y","p","o","b"] //all skins to select from
 var current_games = {}
 let ConvertToEmoji = require('./Bot_modules/emoji_table.js');
 let ConvertToLetter = require('./Bot_modules/letter_table')
-let board_template = require('./Bot_modules/board_template.json')
-const debug = false; //if true, the bot will work only in a specific channel, with the id of Bejeweled_Test below
+const debug = true; //if true, the bot will work only in a specific channel, with the id of Bejeweled_Test below
 const Bejeweled_Test = "694241477160861796"
 
 // Initialize Discord Bot
@@ -64,14 +63,23 @@ bot.on('message', async msg =>
 			else msg.channel.send("No games are present. Use ```+start_game```")
 			
 			break;
+		case 'board_image':
 		case 'board':
 			if (args.length === 0) {msg.channel.send(emoji_help.help); return;}
-			const splitted_msg =  msg.content.slice(prefix.length + command.length).trim().split("\n");
-			let msg_returned = message_get_board(splitted_msg)
-			msg.channel.send(msg_returned).catch(err =>{
-				if (err) msg.channel.send("Message is too long to write!")
-				else msg.channel.send(msg_returned)
-			})
+			const splitted_msg = msg.content.slice(prefix.length + command.length).trim().split("\n");
+			if (command == 'board_image') {
+				let board = message_create_board_array(splitted_msg)
+				console.log(board)
+				await CreateBoardImage(board)
+				await msg.channel.send("",{files: ['image.png']})
+			}
+			else{
+				let msg_returned = message_get_board(splitted_msg)
+				msg.channel.send(msg_returned).catch(err =>{
+					if (err) msg.channel.send("Message is too long to write!")
+					else msg.channel.send(msg_returned)
+				})
+			}
 				
 			break;
 		case 'replay':
@@ -94,11 +102,11 @@ bot.on('message', async msg =>
 		case 'stop_game':
 		case 'stop':
 			if (current_games[msg.channel.id] != undefined){
-				if (current_games[msg.channel.id].creator == msg.author || msg.member.hasPermission('MANAGE_MESSAGES')){
+				//if (current_games[msg.channel.id].creator == msg.author || msg.member.hasPermission('MANAGE_MESSAGES')){
 					current_games[msg.channel.id] = undefined
 					msg.channel.send("Game is destroyed")
-				}
-				else msg.channel.send(`Only moderators/admins or the game creator ${current_games[msg.channel.id].creator.username} can stop the current game`)
+				//}
+				//else msg.channel.send(`Only moderators/admins or the game creator ${current_games[msg.channel.id].creator.username} can stop the current game`)
 			}
 			else msg.channel.send("No current games found to stop!")
 			break;
@@ -107,8 +115,10 @@ bot.on('message', async msg =>
 		case 'restart':
 		case 'play':
 			if (current_games[msg.channel.id] != undefined) return msg.channel.send("You must first finish the current game with ```+stop_game```")
-			current_games[msg.channel.id] = board_template
-			board_template.creator = msg.author
+			let jsonfile = fs.readFileSync('./Bot_modules/board_template.json');
+			const template = JSON.parse(jsonfile);
+			current_games[msg.channel.id] = template
+			current_games[msg.channel.id].creator = msg.author
 			if (args.length === 1){
 				
 				if (!isNaN(args[0]) && args[0] < 8 && args[0] > 2) {args[0] = Math.trunc(args[0]); current_games[msg.channel.id].rules.num_skins = args[0]}
@@ -116,6 +126,7 @@ bot.on('message', async msg =>
 			}
 			current_games[msg.channel.id].board = initialize_board(msg, 8, 8)
 			//CreateBoardImage(current_games[msg.channel.id].board)
+			console.log(current_games[msg.channel.id].board)
 			let return_message = messagify_board(msg, "\n"); 
 			msg.channel.send(return_message)
 			break;
@@ -246,8 +257,34 @@ function execute_matches(msg, board){ //find matches and destroy the gems that g
 	for(i = 0; i < matched_gems.length; i++) matched_gems[i].skin = -1
 	return matches_found;
 }
-
-function message_get_board(message){ //create a board depending on what the user has written (used in +board)
+function message_create_board_array(message){ //create a board array depending on what the user has written
+	let board_array=[];
+	for(let i = 0; i < message.length; i++) //gem rows (if u write two rows of g g, this will return ['g g', 'g g'])
+	{
+		board_array[i] = []
+		let j_start = 0;
+		for(let j = 0; j < message[i].length; j++) //each character from each row (for example from the first row we get ['g', 'g'])
+		{
+			if (message[i][j] != " ")
+			{
+				let m = message[i][j]
+				let p = ""
+				let cont = false
+				if (j != message[i].length-1) { //if we are not at the end of the row message
+					if (message[i][j+1] != " ") { //and the character after this is not empty (=power)
+						p = message[i][j+1]; //get the power
+						cont = true //and make j++ since we checked two characters at once
+					}
+				}
+				board_array[i][j_start] = {skin : m, power : p}
+				j_start++
+				if (cont) j++
+			}
+		}
+	}
+	return board_array;
+}
+function message_get_board(message){ //create an emoji board string depending on what the user has written (used in +board)
 	let msg_returned =""
 	for(let i = 0; i < message.length; i++) //gem rows
 	{
