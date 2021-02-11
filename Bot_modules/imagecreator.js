@@ -17,16 +17,22 @@ module.exports = async function create_board_image(board_arr)
           }
       }
     }
-    mergeImages(image_arr,{
-      Canvas: Canvas,
-      Image: Image
-    }).then(b64 => {
-      var data = b64.replace(/^data:image\/\w+;base64,/, "");
-      var buf = new Buffer.from(data, 'base64');
-      fs.writeFile('image.png', buf, err => {
+    let b64 = await mergeImages(image_arr,{ Canvas: Canvas,Image: Image })
+    var data = b64.replace(/^data:image\/\w+;base64,/, "");
+    var buf = new Buffer.from(data, 'base64');
+    fs.writeFile('image.png', buf, err => {
         if(err)console.log('error', err);
-      });
-    });
+     });
+    // mergeImages(image_arr,{
+    //   Canvas: Canvas,
+    //   Image: Image
+    // }).then(b64 => {
+    //   var data = b64.replace(/^data:image\/\w+;base64,/, "");
+    //   var buf = new Buffer.from(data, 'base64');
+    //   fs.writeFile('image.png', buf, err => {
+    //     if(err)console.log('error', err);
+    //   });
+    // });
     
 }
 
