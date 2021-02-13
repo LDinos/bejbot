@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
-const mergeImages = require('merge-images')
-const { Canvas, Image } = require('canvas');
+//const mergeImages = require('merge-images')
+//const { Canvas, Image } = require('canvas');
 const CreateBoardImage = require('./Bot_modules/imagecreator')
 const auth = require('./auth.json');
 const emoji_help = require('./Bot_modules/emoji_help.json');
@@ -69,7 +69,6 @@ bot.on('message', async msg =>
 			const splitted_msg = msg.content.slice(prefix.length + command.length).trim().split("\n");
 			if (command == 'board_image') {
 				let board = message_create_board_array(splitted_msg)
-				console.log(board)
 				await CreateBoardImage(board)
 				await msg.channel.send("",{files: ['image.png']})
 			}
@@ -86,13 +85,12 @@ bot.on('message', async msg =>
 			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
 			if (current_games[msg.channel.id] != undefined){
 				if (current_games[msg.channel.id].replay.length != 0){
-					console.log(current_games[msg.channel.id].replay.length)
 					current_games[msg.channel.id].board = current_games[msg.channel.id].replay[0]
 					current_games[msg.channel.id].state = "replay"
 					msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
 						current_games[msg.channel.id].current_message = msg_sent
 						current_games[msg.channel.id].current_replay_frame++
-						setTimeout(spawn_new_gems,delay,msg)
+						current_games[msg.channel.id].timeout = setTimeout(spawn_new_gems,delay,msg)
 					})
 				}
 				else msg.channel.send("No moves were made for replay to work here")
@@ -103,6 +101,7 @@ bot.on('message', async msg =>
 		case 'stop':
 			if (current_games[msg.channel.id] != undefined){
 				//if (current_games[msg.channel.id].creator == msg.author || msg.member.hasPermission('MANAGE_MESSAGES')){
+					if (current_games[msg.channel.id].timeout != undefined) clearTimeout(current_games[msg.channel.id].timeout)
 					current_games[msg.channel.id] = undefined
 					msg.channel.send("Game is destroyed")
 				//}
@@ -125,8 +124,6 @@ bot.on('message', async msg =>
 				else msg.channel.send("Argument must be a number from 3 to 7. Setting game to 7 skins by default:")
 			}
 			current_games[msg.channel.id].board = initialize_board(msg, 8, 8)
-			//CreateBoardImage(current_games[msg.channel.id].board)
-			console.log(current_games[msg.channel.id].board)
 			let return_message = messagify_board(msg, "\n"); 
 			msg.channel.send(return_message)
 			break;
@@ -161,7 +158,7 @@ bot.on('message', async msg =>
 							current_games[msg.channel.id].current_message = msg_sent
 							current_games[msg.channel.id].replay = []
 							add_replay_frame(msg)
-							setTimeout(spawn_new_gems,delay,msg)
+							current_games[msg.channel.id].timeout = setTimeout(spawn_new_gems,delay,msg)
 						})
 					}
 				}
@@ -333,7 +330,9 @@ function spawn_new_gems(msg){ //spawn new gems after a match happened
 		const frame = current_games[msg.channel.id].current_replay_frame++
 		current_games[msg.channel.id].board = current_games[msg.channel.id].replay[frame]
 		if (frame < current_games[msg.channel.id].replay.length-1) {
-			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(check_cascade_matches, delay, msg))
+			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then( () => {
+				current_games[msg.channel.id].timeout = setTimeout(check_cascade_matches, delay, msg)
+			})
 		}
 		else {
 			current_games[msg.channel.id].state = "stable"
@@ -360,14 +359,18 @@ function spawn_new_gems(msg){ //spawn new gems after a match happened
 			}
 		}
 		add_replay_frame(msg)
-		current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(check_cascade_matches, delay, msg))
+		current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then( () => {
+			current_games[msg.channel.id].timeout = setTimeout(check_cascade_matches, delay, msg)
+		})
 	}
 }
 function check_cascade_matches(msg){ //check if there are cascades after new gems spawned after a match
 	if (current_games[msg.channel.id].state === "replay"){
 		const frame = current_games[msg.channel.id].current_replay_frame++
 		current_games[msg.channel.id].board = current_games[msg.channel.id].replay[frame]
-		current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, delay, msg))
+		current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then( () =>{
+			current_games[msg.channel.id].timeout = setTimeout(spawn_new_gems, delay, msg)
+		})
 	}
 	else
 	{
@@ -375,7 +378,9 @@ function check_cascade_matches(msg){ //check if there are cascades after new gem
 		if (matches_found){
 			add_replay_frame(msg)
 			current_games[msg.channel.id].stats.cascades++
-			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then(setTimeout(spawn_new_gems, delay, msg))
+			current_games[msg.channel.id].current_message.edit(messagify_board(msg, "\n")).then( () =>{
+				current_games[msg.channel.id].timeout = setTimeout(spawn_new_gems, delay, msg)
+			})
 		}
 		else
 		{
