@@ -32,7 +32,10 @@
 - ```help_table```: List of all commands for a discord user that used ```+help```
 
 # Discord Channel
+<img src="https://cdn.icon-icons.com/icons2/2108/PNG/512/discord_icon_130958.png" alt="Discord" width="64"/>
+
 Are you a Bejeweled enthusiast? Join us in the Bejeweled Fans Server!
-<img src="https://cdn.icon-icons.com/icons2/2108/PNG/512/discord_icon_130958.png" alt="Discord" width="64"/> https://discord.gg/jSj2uKB
+https://discord.gg/jSj2uKB
+
 
 
