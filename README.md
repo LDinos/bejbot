@@ -33,6 +33,6 @@
 
 # Discord Channel
 Are you a Bejeweled enthusiast? Join us in the Bejeweled Fans Server!
-![logo](https://cdn.icon-icons.com/icons2/2108/PNG/512/discord_icon_130958.png) https://discord.gg/jSj2uKB
+<img src="https://cdn.icon-icons.com/icons2/2108/PNG/512/discord_icon_130958.png" alt="Discord" width="64"/> https://discord.gg/jSj2uKB
 
 
