@@ -1,16 +1,15 @@
 const Discord = require('discord.js');
-//const mergeImages = require('merge-images')
-//const { Canvas, Image } = require('canvas');
+const fs = require('fs');
 const CreateBoardImage = require('./Bot_modules/imagecreator')
 const auth = require('./auth.json');
 const emoji_help = require('./Bot_modules/emoji_help.json');
-const fs = require('fs');
+const ConvertToEmoji = require('./Bot_modules/emoji_table.js');
+const ConvertToLetter = require('./Bot_modules/letter_table')
+
 const prefix = '+';
-const delay = 2000
+const delay = 2000 //Timeout delay when matching gems
 const gem_skins = ["r","w","g","y","p","o","b"] //all skins to select from
-var current_games = {}
-let ConvertToEmoji = require('./Bot_modules/emoji_table.js');
-let ConvertToLetter = require('./Bot_modules/letter_table')
+let current_games = {} //class that holds current games for each discord channel
 const debug = true; //if true, the bot will work only in a specific channel, with the id of Bejeweled_Test below
 const Bejeweled_Test = "694241477160861796"
 
@@ -29,6 +28,7 @@ bot.on('message', async msg =>
 
 	if (!msg.content.startsWith(prefix) || msg.author.bot ) return; //dont do anything if the message doesn't start with the prefix
 	if (debug) if (msg.channel.id != Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!")
+	if (msg.guild === null) return msg.channel.send("I can't be used in DM's")
 	if (!msg.guild.me.permissionsIn(msg.channel).has('MANAGE_CHANNELS')) return msg.channel.send("I can't be used here! Maybe try the channels that were made for me?")
 
 	const args = msg.content.slice(prefix.length).trim().split(/ +/); //returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
@@ -163,7 +163,7 @@ bot.on('message', async msg =>
 					}
 				}
 				else msg.channel.send(canswap)
-			} else msg.channel.send("Command format is ```+swap [row] [collumng] [left/right/up/down]```")
+			} else msg.channel.send("Command format is ```+swap [row] [collumn] [left/right/up/down]```")
 			break;
 		default: msg.channel.send(`Can't understand, ${msg.author}`); break;
 	}
