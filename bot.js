@@ -10,7 +10,7 @@ const prefix = '+';
 const delay = 2000 //Timeout delay when matching gems
 const gem_skins = ["r","w","g","y","p","o","b"] //all skins to select from
 let current_games = {} //class that holds current games for each discord channel
-const debug = true; //if true, the bot will work only in a specific channel, with the id of Bejeweled_Test below
+const debug = false; //if true, the bot will work only in a specific channel, with the id of Bejeweled_Test below
 const Bejeweled_Test = "694241477160861796"
 
 // Initialize Discord Bot
