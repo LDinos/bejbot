@@ -7,8 +7,8 @@
 ```
 - You install the dependencies ```node install```
 - You run the bot by typing ```node bot```
-- You need textures for command ```+board_image``` to work by creating a folder in ```Bot_modules/textures/``` and inserting png textures of the gems depending on the colors and their power. For example, a green gem must be in a ```g.png``` file in the textures folder. A green flame gem must be ```gf.png```. A lightning green gem must be ```gl.png``` and a green Supernova is ```gs.png```. 
-- You also need a ```Bot_modules/textures/board.png``` for the board in the background. 
+- You need textures for command ```+board_image``` to work by creating a folder in ```Bot_modules/textures/``` and inserting png textures of the gems (64x64) depending on the colors and their power . For example, a green gem must be in a ```g.png``` file in the textures folder. A green flame gem must be ```gf.png```. A lightning green gem must be ```gl.png``` and a green Supernova is ```gs.png```. 
+- You also need a ```Bot_modules/textures/board.png``` (512x512) for the board in the background. 
 
 
 |Colors|Powers|
@@ -20,7 +20,7 @@
 |p (Purple)|
 |b (Blue)|
 |w (White)|
-|<any> (Empty)
+|-any- (Empty)
 
 # Code Structure
 - ```bot.js```: The main code of the bot. Holds all commands and their behaviour
