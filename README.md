@@ -14,8 +14,8 @@
 |Colors|Powers|
 |-|-|
 |g (Green)|f (Flame)|
-|r (Red)|l (Lightning|
-|y (Yellow)|s (Supernova|
+|r (Red)|l (Lightning)|
+|y (Yellow)|s (Supernova)|
 |o (Orange)|
 |p (Purple)|
 |b (Blue)|
@@ -37,5 +37,6 @@
 Are you a Bejeweled enthusiast? Join us in the Bejeweled Fans Server!
 https://discord.gg/jSj2uKB
 
-
+# Donations
+If you want to support me and want to throw money at me, you can donate to my paypal here: https://www.paypal.me/LDinos
 

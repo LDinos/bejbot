@@ -38,6 +38,12 @@ bot.on('message', async msg =>
 
 	switch(command)
 	{
+		case 'source':
+		case 'info':
+		case 'link':
+		case 'code':
+			msg.channel.send("I am an open source bot! Find my code at https://github.com/LDinos/bejbot")
+			break;
 		case 'help':
 		case 'list':
 			const helptable = require('./Bot_modules/help_table.json')
