@@ -27,7 +27,7 @@ bot.on('message', async msg =>
 {
 
 	if (!msg.content.startsWith(prefix) || msg.author.bot ) return; //dont do anything if the message doesn't start with the prefix
-	if (debug) if (msg.channel.id != Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!")
+	if (debug) if (msg.channel.id !== Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!")
 	if (msg.guild === null) return msg.channel.send("I can't be used in DM's")
 	if (!msg.guild.me.permissionsIn(msg.channel).has('MANAGE_CHANNELS')) return msg.channel.send("I can't be used here! Maybe try the channels that were made for me?")
 
@@ -65,7 +65,7 @@ bot.on('message', async msg =>
 			break;
 		case 'show':
 		case 'show_board':
-			if (current_games[msg.channel.id] != undefined) msg.channel.send(messagify_board(msg, "\n"))
+			if (current_games[msg.channel.id] !== undefined) msg.channel.send(messagify_board(msg, "\n"))
 			else msg.channel.send("No games are present. Use ```+start_game```")
 			
 			break;
@@ -73,7 +73,7 @@ bot.on('message', async msg =>
 		case 'board':
 			if (args.length === 0) {msg.channel.send(emoji_help.help); return;}
 			const splitted_msg = msg.content.slice(prefix.length + command.length).trim().split("\n");
-			if (command == 'board_image') {
+			if (command === 'board_image') {
 				let board = message_create_board_array(splitted_msg)
 				await CreateBoardImage(board)
 				await msg.channel.send("",{files: ['image.png']})
@@ -88,9 +88,9 @@ bot.on('message', async msg =>
 				
 			break;
 		case 'replay':
-			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
-			if (current_games[msg.channel.id] != undefined){
-				if (current_games[msg.channel.id].replay.length != 0){
+			if (current_games[msg.channel.id] !== undefined && current_games[msg.channel.id].state !== "stable") return;
+			if (current_games[msg.channel.id] !== undefined){
+				if (current_games[msg.channel.id].replay.length !== 0){
 					current_games[msg.channel.id].board = current_games[msg.channel.id].replay[0]
 					current_games[msg.channel.id].state = "replay"
 					msg.channel.send(messagify_board(msg, "\n")).then(msg_sent =>{
@@ -105,9 +105,9 @@ bot.on('message', async msg =>
 			break;
 		case 'stop_game':
 		case 'stop':
-			if (current_games[msg.channel.id] != undefined){
-				//if (current_games[msg.channel.id].creator == msg.author || msg.member.hasPermission('MANAGE_MESSAGES')){
-					if (current_games[msg.channel.id].timeout != undefined) clearTimeout(current_games[msg.channel.id].timeout)
+			if (current_games[msg.channel.id] !== undefined){
+				//if (current_games[msg.channel.id].creator === msg.author || msg.member.hasPermission('MANAGE_MESSAGES')){
+					if (current_games[msg.channel.id].timeout !== undefined) clearTimeout(current_games[msg.channel.id].timeout)
 					current_games[msg.channel.id] = undefined
 					msg.channel.send("Game is destroyed")
 				//}
@@ -119,7 +119,7 @@ bot.on('message', async msg =>
 		case 'start':
 		case 'restart':
 		case 'play':
-			if (current_games[msg.channel.id] != undefined) return msg.channel.send("You must first finish the current game with ```+stop_game```")
+			if (current_games[msg.channel.id] !== undefined) return msg.channel.send("You must first finish the current game with ```+stop_game```")
 			let jsonfile = fs.readFileSync('./Bot_modules/board_template.json');
 			const template = JSON.parse(jsonfile);
 			current_games[msg.channel.id] = template
@@ -134,12 +134,12 @@ bot.on('message', async msg =>
 			msg.channel.send(return_message)
 			break;
 		case 'swap':
-			if (current_games[msg.channel.id] != undefined && current_games[msg.channel.id].state != "stable") return;
+			if (current_games[msg.channel.id] !== undefined && current_games[msg.channel.id].state !== "stable") return;
 			if (args.length === 3){
 				args[0] = Math.trunc(args[0])
 				args[1] = Math.trunc(args[1])
-				var xcoord = args[1] - (args[2] == "left") + (args[2] == "right")
-				var ycoord = args[0] - (args[2] == "up") + (args[2] == "down")
+				var xcoord = args[1] - (args[2] === "left") + (args[2] === "right")
+				var ycoord = args[0] - (args[2] === "up") + (args[2] === "down")
 				const canswap = check_swap_command(msg, args, xcoord, ycoord)
 				if (canswap === "Swap okay"){
 					let gem1 = current_games[msg.channel.id].board[args[0]-1][args[1]-1]
@@ -147,7 +147,7 @@ bot.on('message', async msg =>
 					current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
 
 					let matches_found = execute_matches(msg, current_games[msg.channel.id].board)
-					if (matches_found == 0){ //swap back
+					if (matches_found === 0){ //swap back
 						gem1 = current_games[msg.channel.id].board[args[0]-1][args[1]-1]
 						current_games[msg.channel.id].board[args[0]-1][args[1]-1] = current_games[msg.channel.id].board[ycoord-1][xcoord-1]
 						current_games[msg.channel.id].board[ycoord-1][xcoord-1] = gem1
@@ -193,10 +193,10 @@ function initialize_board(msg, rows, cols) { //Create board for the first time
 }
 
 function check_swap_command(msg, args, xcoord, ycoord){ //check if swapping is possible
-	if (current_games[msg.channel.id] != undefined){
+	if (current_games[msg.channel.id] !== undefined){
 		if (args[0] <= 8 && args[0] > 0 && args[1] <= 8 && args[1] > 0){
 			if (xcoord <= 8 && xcoord > 0 && ycoord <= 8 && ycoord > 0){
-				if (xcoord != args[0] || ycoord != args[1]){ //if the direction word is none of the 4 (up,down etc..), the gem wont swap anywhere
+				if (xcoord !== args[0] || ycoord !== args[1]){ //if the direction word is none of the 4 (up,down etc..), the gem wont swap anywhere
 					return "Swap okay";
 				}
 				else return "The format of command is ```+swap [row] [collumn] [up/down/left/right]```"
@@ -236,7 +236,7 @@ function execute_matches(msg, board){ //find matches and destroy the gems that g
 
 			is_same_color = false;
 			if (board[i][j].skin === board[i][j-1].skin) {n_hor++; is_same_color = true;}
-			if (((j==7 && is_same_color) || (!is_same_color)) && n_hor >= 3) { //execute horizontal matches here
+			if (((j===7 && is_same_color) || (!is_same_color)) && n_hor >= 3) { //execute horizontal matches here
 				for(let k = j-n_hor+is_same_color; k < j+is_same_color; k++){
 					matched_gems.push(board[i][k])
 				}
@@ -247,7 +247,7 @@ function execute_matches(msg, board){ //find matches and destroy the gems that g
 
 			is_same_color = false;
 			if (board[j][i].skin === board[j-1][i].skin) {n_ver++; is_same_color = true;}
-			if (((j==7 && is_same_color) || (!is_same_color)) && n_ver >= 3) { //execute vertical matches here
+			if (((j===7 && is_same_color) || (!is_same_color)) && n_ver >= 3) { //execute vertical matches here
 				for(let k = j-n_ver+is_same_color; k < j+is_same_color; k++){
 					matched_gems.push(board[k][i])
 				}
@@ -268,13 +268,13 @@ function message_create_board_array(message){ //create a board array depending o
 		let j_start = 0;
 		for(let j = 0; j < message[i].length; j++) //each character from each row (for example from the first row we get ['g', 'g'])
 		{
-			if (message[i][j] != " ")
+			if (message[i][j] !== " ")
 			{
 				let m = message[i][j]
 				let p = ""
 				let cont = false
-				if (j != message[i].length-1) { //if we are not at the end of the row message
-					if (message[i][j+1] != " ") { //and the character after this is not empty (=power)
+				if (j !== message[i].length-1) { //if we are not at the end of the row message
+					if (message[i][j+1] !== " ") { //and the character after this is not empty (=power)
 						p = message[i][j+1]; //get the power
 						cont = true //and make j++ since we checked two characters at once
 					}
@@ -293,10 +293,10 @@ function message_get_board(message){ //create an emoji board string depending on
 	{
 		for(let j = 0; j < message[i].length; j++) //each row character
 		{
-			if (message[i][j] != " ")
+			if (message[i][j] !== " ")
 			{
 				let m = message[i][j]
-				if (j != message[i].length-1) if (message[i][j+1] != " ") {m += message[i][j+1]; j++}
+				if (j !== message[i].length-1) if (message[i][j+1] !== " ") {m += message[i][j+1]; j++}
 				msg_returned += ConvertToEmoji(m);
 			}
 			else msg_returned += " "
@@ -352,7 +352,7 @@ function spawn_new_gems(msg){ //spawn new gems after a match happened
 		for(let j = 0; j < 8; j++){
 			let k_end = 7;
 			for(let i = k_end; i >= 0; i--){
-				if (current_games[msg.channel.id].board[i][j].skin != -1) {
+				if (current_games[msg.channel.id].board[i][j].skin !== -1) {
 					const temp = current_games[msg.channel.id].board[k_end][j]
 					current_games[msg.channel.id].board[k_end][j] = current_games[msg.channel.id].board[i][j]
 					current_games[msg.channel.id].board[i][j] = temp
