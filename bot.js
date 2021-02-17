@@ -33,7 +33,7 @@ bot.on('message', async msg =>
 
 	const args = msg.content.slice(prefix.length).trim().split(/ +/); //returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
 	let command = args.shift().toLowerCase();
-	const lineIndex = command.index('\n');
+	const lineIndex = command.indexOf('\n');
 	command = command.slice(0, lineIndex === -1 ? undefined : lineIndex) //returns the command, eg '+swap 1 1 left' will return "swap"
 	console.log(command)
 
