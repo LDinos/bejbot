@@ -55,9 +55,9 @@ bot.on('message', async msg =>
 		case 'text':
 		case 'say':
 			let final_msg = ""
-			for(let i = 0; i < args.length; i++){
-				for(j = 0; j < args[i].length; j++){
-					final_msg += ConvertToLetter(args[i][j].toLowerCase())+ " "
+			for(let arg of args){
+				for(let char of arg){
+					final_msg += ConvertToLetter(char.toLowerCase())+ " "
 				}
 				final_msg+=" "
 			}
@@ -180,7 +180,7 @@ bot.on('message', async msg =>
 
 function initialize_board(current_game, rows, cols) { //Create board for the first time
 	const num_skins = current_game.rules.num_skins
-	let board = [];
+	let board;
 	do {
 		board = [];
 		for(let i = 0; i < 8; i++){
@@ -265,41 +265,43 @@ function execute_matches(current_game, board){ //find matches and destroy the ge
 }
 function message_create_board_array(message){ //create a board array depending on what the user has written
 	let board_array=[];
-	for(let i = 0; i < message.length; i++) //gem rows (if u write two rows of g g, this will return ['g g', 'g g'])
+	for(let row of message) //gem rows (if u write two rows of g g, this will return ['g g', 'g g'])
 	{
-		board_array[i] = []
-		let j_start = 0;
-		for(let j = 0; j < message[i].length; j++) //each character from each row (for example from the first row we get ['g', 'g'])
+		let array = [];
+		let i_start = 0;
+		for(let i = 0; i < row.length; i++) //each character from each row (for example from the first row we get ['g', 'g'])
 		{
-			if (message[i][j] !== " ")
+			if (row[i] !== " ")
 			{
-				let m = message[i][j]
+				let m = row[i]
 				let p = ""
 				let cont = false
-				if (j !== message[i].length-1) { //if we are not at the end of the row message
-					if (message[i][j+1] !== " ") { //and the character after this is not empty (=power)
-						p = message[i][j+1]; //get the power
+				if (i !== row.length-1) { //if we are not at the end of the row message
+					if (row[i+1] !== " ") { //and the character after this is not empty (=power)
+						p = row[i+1]; //get the power
 						cont = true //and make j++ since we checked two characters at once
 					}
 				}
-				board_array[i][j_start] = {skin : m, power : p}
-				j_start++
-				if (cont) j++
+				array[i_start] = {skin : m, power : p}
+				i_start++
+				if (cont) i++
 			}
 		}
+
+		board_array.push(array);
 	}
 	return board_array;
 }
 function message_get_board(message){ //create an emoji board string depending on what the user has written (used in +board)
 	let msg_returned =""
-	for(let i = 0; i < message.length; i++) //gem rows
+	for(let row of message) //gem rows
 	{
-		for(let j = 0; j < message[i].length; j++) //each row character
+		for(let i = 0; i < row.length; i++) //each row character
 		{
-			if (message[i][j] !== " ")
+			if (row[i] !== " ")
 			{
-				let m = message[i][j]
-				if (j !== message[i].length-1) if (message[i][j+1] !== " ") {m += message[i][j+1]; j++}
+				let m = row[i]
+				if (i !== row.length-1) if (row[i+1] !== " ") {m += row[i+1]; i++}
 				msg_returned += ConvertToEmoji(m);
 			}
 			else msg_returned += " "
