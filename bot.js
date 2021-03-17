@@ -10,7 +10,7 @@ const prefix = '+';
 const delay = 2000 //Timeout delay when matching gems
 const gem_skins = ["r","w","g","y","p","o","b"] //all skins to select from
 let current_games = {} //class that holds current games for each discord channel
-const debug = false; //if true, the bot will work only in a specific channel, with the id of Bejeweled_Test below
+const debug = false; //if true, the bot will work only in a specific channel, with the channel id in variable Bejeweled_Test below
 const Bejeweled_Test = "694241477160861796"
 
 // Initialize Discord Bot
@@ -28,8 +28,8 @@ bot.on('message', async msg =>
 
 	if (!msg.content.startsWith(prefix) || msg.author.bot ) return; //dont do anything if the message doesn't start with the prefix
 	if (debug && msg.channel.id !== Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!")
-	if (msg.guild === null) return msg.channel.send("I can't be used in DM's")
-	if (!msg.guild.me.permissionsIn(msg.channel).has('MANAGE_CHANNELS')) return msg.channel.send("I can't be used here! Maybe try the channels that were made for me?")
+	if (msg.guild === null) return msg.channel.send("I can't be used in DM's") //Cant be used in DM because of the line below us
+	if (!msg.guild.me.permissionsIn(msg.channel).has('MANAGE_CHANNELS')) return msg.channel.send("I can't be used here! Maybe try the channels that were made for me?") //TODO: make it not get an error when checking permissions of the guild if used in DM's.
 
 	const args = msg.content.slice(prefix.length).trim().split(/ +/); //returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
 	let command = args.shift().toLowerCase();
@@ -45,7 +45,7 @@ bot.on('message', async msg =>
 		case 'info':
 		case 'link':
 		case 'code':
-			msg.channel.send("I am an open source bot! Find my code at https://github.com/LDinos/bejbot")
+			msg.channel.send("I am an open source bot! Find my code at https://github.com/LDinos/bejbot. For list of commands, type +help")
 			break;
 		case 'help':
 		case 'list':

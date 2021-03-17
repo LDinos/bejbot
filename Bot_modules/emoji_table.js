@@ -5,6 +5,10 @@ module.exports = function ConvertToEmoji(number)
 	let emoji;
 	switch(number)
 	{
+		case 'c':
+		case '7':
+			emoji = "<:coal:585745807937110027>";
+			break;
 		case 'r':
 		case '0':
 			emoji = "<:red:335099342430011393>";
