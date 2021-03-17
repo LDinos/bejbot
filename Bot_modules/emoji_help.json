@@ -1,3 +1,3 @@
 {
-	"help": "```Use +board [color][power]. \nCOLORS:\n g = green\n r = red\n y = yellow\n w = white\n p = purple\n b = blue\n o = orange\n e = empty\n\n POWER:\n f = flame \n l = lightning\n\nExample: +board\ng g r\ngf bf rl\n(Use SHIFT+ENTER to go to next line)```"
+	"help": "```Use +board [color][power]. \nCOLORS:\n g = green\n r = red\n y = yellow\n w = white\n p = purple\n b = blue\n o = orange\n c = coal\n e = empty\n\n POWER:\n f = flame \n l = lightning\n\nExample: +board\ng g r\ngf bf rl\n(Use SHIFT+ENTER to go to next line)```"
 }
