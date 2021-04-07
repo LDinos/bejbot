@@ -5,6 +5,9 @@ module.exports = function ConvertToEmoji(number)
 	let emoji;
 	switch(number)
 	{
+		case 'h':
+			emoji = "<:Hypercube:558943593084223488>";
+			break;
 		case 'c':
 		case '7':
 			emoji = "<:coal:585745807937110027>";
