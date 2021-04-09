@@ -22,7 +22,8 @@ TLDR; Run the command in the 'Compiling' section, then ```npm install --build-fr
 |p (Purple)|
 |b (Blue)|
 |w (White)|
-|-any- (Empty)
+|h (Hypercube)|
+|-any- (Empty)|
 
 # Code Structure
 - ```bot.js```: The main code of the bot. Holds all commands and their behaviour
