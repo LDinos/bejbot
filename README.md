@@ -6,6 +6,8 @@
 }
 ```
 - You install the dependencies ```node install```
+- If 'canvas' brings an error, please follow the instructions in https://www.npmjs.com/package/canvas. 
+TLDR; Run the command in the 'Compiling' section, then ```npm install --build-from-source```
 - You run the bot by typing ```node bot```
 - You need textures for command ```+board_image``` to work by creating a folder in ```Bot_modules/textures/``` and inserting png textures of the gems (64x64) depending on the colors and their power . For example, a green gem must be in a ```g.png``` file in the textures folder. A green flame gem must be ```gf.png```. A lightning green gem must be ```gl.png``` and a green Supernova is ```gs.png```. 
 - You also need a ```Bot_modules/textures/board.png``` (512x512) for the board in the background. 
