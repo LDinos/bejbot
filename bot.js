@@ -172,7 +172,7 @@ bot.on('message', async msg =>
 					}
 				}
 				else msg.channel.send(canswap)
-			} else msg.channel.send("Command format is ```+swap [row] [collumn] [left/right/up/down]```")
+			} else msg.channel.send("Command format is ```+swap [row] [column] [left/right/up/down]```")
 			break;
 		default: msg.channel.send(`Can't understand, ${msg.author}`); break;
 	}
@@ -202,11 +202,11 @@ function check_swap_command(current_game, args, xcoord, ycoord){ //check if swap
 				if (xcoord !== args[0] || ycoord !== args[1]){ //if the direction word is none of the 4 (up,down etc..), the gem wont swap anywhere
 					return "Swap okay";
 				}
-				else return "The format of command is ```+swap [row] [collumn] [up/down/left/right]```"
+				else return "The format of command is ```+swap [row] [column] [up/down/left/right]```"
 			}
 			else return "You can't swap there!"
 		}
-		else return "Arguments row and collumn must not exceed or fall short of board size"
+		else return "Arguments row and column must not exceed or fall short of board size"
 	}
 	else return "You need to start a game first before trying to swap! Type ```+start_game```"
 }
