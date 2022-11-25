@@ -16,6 +16,7 @@ const ConvertToLetter = require('./Bot_modules/letter_table');
 const prefix = '+';
 const delay = 2000; // Timeout delay when matching gems
 const gem_skins = ["r", "w", "g", "y", "p", "o", "b"]; // all skins to select from
+const points_from_match = [0, 0, 100, 125, 150, 200, 300, 500]; // Points you get for each x-match
 // eslint-disable-next-line prefer-const
 let current_games = {}; // class that holds current games for each discord channel
 const debug = true; // if true, the bot will work only in a specific channel, with the channel id in variable Bejeweled_Test below
@@ -38,7 +39,7 @@ bot.on('ready', () => {
 bot.on('messageCreate', async msg => {
 	if (!msg.content.startsWith(prefix) || msg.author.bot) return; // dont do anything if the message doesn't start with the prefix
 	if (debug && msg.channel.id !== Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!");
-	if (msg.guild === null) return msg.channel.send("I can't be used in DM's"); // Cant be used in DM because of the line below us
+	if (msg.guild === null) return msg.channel.send("I can't be used in DMs"); // Cant be used in DM because of the line below us
 	if (!msg.guild.members.me.permissions.has('MANAGE_CHANNELS')) return; //	msg.channel.send("I can't be used here! Maybe try the channels that were made for me?"); // TODO: make it not get an error when checking permissions of the guild if used in DM's.
 
 	const args = msg.content.slice(prefix.length).trim().split(/ +/); // returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
@@ -157,7 +158,7 @@ bot.on('messageCreate', async msg => {
 				let gem1 = current_game.board[args[0] - 1][args[1] - 1];
 				current_game.board[args[0] - 1][args[1] - 1] = current_game.board[ycoord - 1][xcoord - 1];
 				current_game.board[ycoord - 1][xcoord - 1] = gem1;
-
+				current_game.stats.cascades = 0;
 				const matches_found = execute_matches(current_game, current_game.board);
 				if (matches_found === 0) { // swap back
 					gem1 = current_game.board[args[0] - 1][args[1] - 1];
@@ -254,6 +255,7 @@ function execute_matches(current_game, board) { // find matches and destroy the 
 					matched_gems.push(board[i][k]);
 				}
 				matches_found++;
+				current_game.stats.score += points_from_match[n_hor - 1] * (current_game.stats.cascades + 1);
 				n_hor = 1;
 			}
 			else if (!is_same_color) {n_hor = 1;}
@@ -265,6 +267,7 @@ function execute_matches(current_game, board) { // find matches and destroy the 
 					matched_gems.push(board[k][i]);
 				}
 				matches_found++;
+				current_game.stats.score += points_from_match[n_ver - 1] * (current_game.stats.cascades + 1);
 				n_ver = 1;
 			}
 			else if (!is_same_color) {n_ver = 1;}
@@ -326,8 +329,6 @@ function messagify_board(current_game, initial_text) { // Take all gems and writ
 	let state = "Ready!";
 	if (current_game.state === "moving") state = "Standby...";
 	else if (current_game.state === "replay") state = "Replaying...";
-	// initial_text+="\n"+state
-	console.log(current_game.stats.last_move);
 	const footer_text = `Last move made by ${current_game.stats.last_move.user}`;
 	const footer_avatar = current_game.stats.last_move.user != "None" ? current_game.stats.last_move.user_avatar : "https://cdn.discordapp.com/embed/avatars/0.png";
 	const emb = new EmbedBuilder()
