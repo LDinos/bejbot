@@ -10,7 +10,7 @@
         "cascades" : 0,
         "total_moves" : 0,
         "last_move" : {
-           " user" : "None",
+            "user" : "None",
             "user_avatar" : "",
             "row" : 0,
             "col" : 0

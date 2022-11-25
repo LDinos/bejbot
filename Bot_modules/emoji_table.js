@@ -149,7 +149,7 @@ module.exports = function ConvertToEmoji(number)
 			emoji = "<:skullgem:585744824507039754>"
 			break;
 		default:
-			if (number < 0) emoji = "<:empty:693409154324234240>"; //empty
+			if (number < 0) emoji = "<:skullgem:585744824507039754>"; //empty
 			else emoji = ":question:"; //????
 			break;
 	}
