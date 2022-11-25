@@ -19,7 +19,7 @@ const gem_skins = ["r", "w", "g", "y", "p", "o", "b"]; // all skins to select fr
 const points_from_match = [0, 0, 100, 125, 150, 200, 300, 500]; // Points you get for each x-match
 // eslint-disable-next-line prefer-const
 let current_games = {}; // class that holds current games for each discord channel
-const debug = true; // if true, the bot will work only in a specific channel, with the channel id in variable Bejeweled_Test below
+const debug = false; // if true, the bot will work only in a specific channel, with the channel id in variable Bejeweled_Test below
 const Bejeweled_Test = "1042582468097749022";
 
 // Initialize Discord Bot
