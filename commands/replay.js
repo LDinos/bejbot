@@ -2,6 +2,7 @@ const { spawn_new_gems, messagify_board, delay } = require('./../Bot_modules/sha
 
 module.exports = {
 	name : ['replay'],
+	channel_permissions : 'SPECIFIC',
 	async trigger(msg, args, current_game) {
 		if (current_game !== undefined && current_game.state !== 'stable') return;
 		if (current_game !== undefined) {

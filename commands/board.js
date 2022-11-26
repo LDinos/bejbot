@@ -5,6 +5,7 @@ const { message_get_board } = require('./../Bot_modules/shared_functions');
 
 module.exports = {
 	name : ['board'],
+	channel_permissions : 'SPECIFIC',
 	async trigger(msg, args) {
 		if (args.length === 0) {msg.channel.send(emoji_help.help); return;}
 		const splitted_msg = msg.content.slice(6).trim().split('\n'); // 6 = +board command length (With prefix)

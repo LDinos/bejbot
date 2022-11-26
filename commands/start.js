@@ -4,6 +4,7 @@ const { messagify_board, initialize_board } = require('./../Bot_modules/shared_f
 const fs = require('fs');
 module.exports = {
 	name : ['start', 'start_game', 'restart', 'play'],
+	channel_permissions : 'SPECIFIC',
 	async trigger(msg, args, current_game, current_games) {
 		if (current_game !== undefined) return msg.channel.send('You must first finish the current game with ```+stop_game```');
 		const jsonfile = fs.readFileSync('./Bot_modules/board_template.json');

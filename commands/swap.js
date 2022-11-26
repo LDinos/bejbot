@@ -3,6 +3,7 @@ const { spawn_new_gems, messagify_board, delay, check_swap_command, execute_matc
 
 module.exports = {
 	name : ['swap'],
+	channel_permissions : 'SPECIFIC',
 	async trigger(msg, args, current_game) {
 		if (current_game !== undefined && current_game.state !== 'stable') return;
 		if (args.length === 3) {

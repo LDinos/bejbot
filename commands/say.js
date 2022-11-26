@@ -2,6 +2,7 @@ const ConvertToLetter = require('./../Bot_modules/letter_table');
 
 module.exports = {
 	name : ['say', 'text'],
+	channel_permissions : 'SPECIFIC',
 	async trigger(msg, args) {
 		let final_msg = '';
 		for(const arg of args) {
