@@ -14,10 +14,6 @@ let current_games = {};
 const prefix = '+';
 const Bejeweled_Test = "1042582468097749022";
 const specific_channels = [Bejeweled_Test, "808740551414513725", "808740184652120105", "808740229166923777", "410255110170607632"]; // Channels that commands with SPECIFIC permissions can be writen to
-// const delay = 2000; // Timeout delay when matching gems
-// const gem_skins = ["r", "w", "g", "y", "p", "o", "b"]; // all skins to select from
-// const points_from_match = [0, 0, 100, 125, 150, 200, 300, 500]; // Points you get for each x-match
-// eslint-disable-next-line prefer-const
 
 const commandsPath = path.join(__dirname, "commands");
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -51,7 +47,6 @@ bot.on('messageCreate', async msg => {
 	let command = args.shift().toLowerCase();
 	const lineIndex = command.indexOf('\n');
 	command = command.slice(0, lineIndex === -1 ? undefined : lineIndex); // returns the command, eg '+swap 1 1 left' will return "swap"
-	console.log(command);
 	return run_command(command, msg, args);
 });
 
@@ -67,5 +62,7 @@ function run_command(command, msg, args) {
 			}
 		}
 	}
-	return msg.channel.send(`Can't understand, ${msg.author}`);
+
+	if (specific_channels.includes(msg.channel.id)) return msg.channel.send(`Can't understand, ${msg.author}`);
+	return; // msg.channel.send(`Can't understand, ${msg.author}`);
 }
