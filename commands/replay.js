@@ -1,8 +1,10 @@
 const { spawn_new_gems, messagify_board, delay } = require('./../Bot_modules/shared_functions');
+const { PermissionsBitField } = require('discord.js');
 
 module.exports = {
 	name : ['replay'],
 	channel_permissions : 'SPECIFIC',
+	permission_requirement : PermissionsBitField.Flags.SendMessages,
 	async trigger(msg, args, current_game) {
 		if (current_game !== undefined && current_game.state !== 'stable') return;
 		if (current_game !== undefined) {

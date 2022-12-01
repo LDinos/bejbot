@@ -2,9 +2,12 @@
 /* eslint-disable max-statements-per-line */
 const { messagify_board, initialize_board } = require('./../Bot_modules/shared_functions');
 const fs = require('fs');
+const { PermissionsBitField } = require('discord.js');
+
 module.exports = {
 	name : ['start', 'start_game', 'restart', 'play'],
 	channel_permissions : 'SPECIFIC',
+	permission_requirement : PermissionsBitField.Flags.SendMessages,
 	async trigger(msg, args, current_game, current_games) {
 		if (current_game !== undefined) return msg.channel.send('You must first finish the current game with ```+stop_game```');
 		const jsonfile = fs.readFileSync('./Bot_modules/board_template.json');

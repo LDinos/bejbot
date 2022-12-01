@@ -1,7 +1,10 @@
 // const current_games = require('./../bot.js');
+const { PermissionsBitField } = require('discord.js');
+
 module.exports = {
 	name : ['stop', 'stop_game'],
 	channel_permissions : 'SPECIFIC',
+	permission_requirement : PermissionsBitField.Flags.SendMessages,
 	async trigger(msg, args, current_game, current_games) {
 		if (current_game !== undefined) {
 			// if (current_game.creator === msg.author || msg.member.hasPermission('MANAGE_MESSAGES')){

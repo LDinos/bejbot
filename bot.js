@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 /* eslint-disable prefer-const */
 /* eslint-disable no-unused-vars */
 /* eslint-disable comma-dangle */
@@ -10,11 +11,10 @@ const { Discord, Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } 
 const fs = require('fs');
 const path = require('path');
 const auth = require('./auth.json');
+const { increase_xp, check_for_levelup, update_settings_file } = require('./Bot_modules/moderator_funcs');
+const settings = fs.existsSync('./current_settings.json') ? require('./current_settings.json') : require('./default_settings.json');
 let current_games = {};
 const prefix = '+';
-const Bejeweled_Test = "1042582468097749022";
-const specific_channels = [Bejeweled_Test, "808740551414513725", "808740184652120105", "808740229166923777", "410255110170607632"]; // Channels that commands with SPECIFIC permissions can be writen to
-
 const commandsPath = path.join(__dirname, "commands");
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 const commands = [];
@@ -27,7 +27,9 @@ for(const file of commandFiles) {
 // Initialize Discord Bot
 const bot = new Client({
 	intents: [GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildPresences,
 		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMembers,
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.DirectMessages]
 });
@@ -35,14 +37,39 @@ bot.login(auth.token);
 
 bot.on('ready', () => {
 	console.log("Welcome Back");
-	// bot.channels.fetch(Bejeweled_Test).then(channel => {channel.send("Welcome Back!")})
+	setInterval(() => update_settings_file(settings), 1000 * 20);
+});
+
+bot.on('guildMemberAdd', member => { // When a new person joins the server
+	const welcome = settings[member.guild.id].welcome_message;
+	const welcome_channel = settings[member.guild.id].welcome_channel_id;
+	const welcome_embed = new EmbedBuilder()
+	.setTitle(`Welcome ${member.user.username}!`)
+	.setDescription(`${member.user} ${welcome}`)
+	.setThumbnail(member.user.displayAvatarURL());
+    member.guild.channels.cache.get(welcome_channel).send({ content : `${member.user}`, embeds : [welcome_embed] });
+});
+
+bot.on('guildMemberRemove', member => { // When a person leaves the server
+	const welcome_channel = settings[member.guild.id].welcome_channel_id;
+    member.guild.channels.cache.get(welcome_channel).send({ content : `${member.user} has left the server.` });
 });
 
 bot.on('messageCreate', async msg => {
-	if (!msg.content.startsWith(prefix) || msg.author.bot) return; // dont do anything if the message doesn't start with the prefix
-	// if (debug && msg.channel.id !== Bejeweled_Test) return msg.channel.send("I am being developed in a very secret channel right now, so you can't use me at the moment!");
-	if (msg.guild === null) return msg.channel.send("I can't be used in DMs!"); // Cant be used in DM because of the line below us
-	// if (!msg.guild.members.me.permissions.has('MANAGE_CHANNELS')) return; //	msg.channel.send("I can't be used here! Maybe try the channels that were made for me?"); // TODO: make it not get an error when checking permissions of the guild if used in DM's.
+	if (msg.guild === null) return msg.channel.send("I can't be used in DMs!"); // Cant be used in DM
+	if (!msg.content.startsWith(prefix) || msg.author.bot) {
+		// TODO: XP SYSTEM HERE
+		if (msg.author.bot) return;
+		if (!settings[msg.guildId].users.hasOwnProperty(msg.author.id)) { // First ever xp
+			settings[msg.guildId].users[msg.author.id] = { current_xp : 1 };
+		}
+		else {
+			increase_xp(settings, msg.guildId, msg.member, msg.channel);
+			check_for_levelup(settings, msg.guild, msg.member);
+			update_settings_file(settings);
+		}
+		return;
+	}
 	const args = msg.content.slice(prefix.length).trim().split(/ +/); // returns the arguments after the command, eg '+swap 1 1 left' will return [1, 1, left]
 	let command = args.shift().toLowerCase();
 	const lineIndex = command.indexOf('\n');
@@ -51,12 +78,15 @@ bot.on('messageCreate', async msg => {
 });
 
 function run_command(command, msg, args) {
+	const specific_channels = settings[msg.guildId].specific_channels; // Channels that commands with SPECIFIC permissions can be writen into
 	let current_game = current_games[msg.channel.id];
 	for(const cmd_data of commands) {
 		for(const cmd_name of cmd_data.name) {
 			if (command === cmd_name) {
-				if (cmd_data.channel_permissions === 'SPECIFIC') {
-					if (!specific_channels.includes(msg.channel.id)) return; // If we are not allowed to write this command in this channel, don't say anything
+				if (!msg.member.permissions.has(cmd_data.permission_requirement)) return; // Does the user have the permission to type this command?
+				if (cmd_data.channel_permissions === 'SPECIFIC') { // Does the bot have permission to type in this channel?
+					// Administrators can use bot commands in any channel
+					if (!specific_channels.includes(msg.channel.id) && !msg.member.permissions.has(PermissionsBitField.Flags.Administrator)) return; // If we are not allowed to write this command in this channel, don't say anything
 				}
 				return cmd_data.trigger(msg, args, current_game, current_games);
 			}
@@ -64,5 +94,5 @@ function run_command(command, msg, args) {
 	}
 
 	if (specific_channels.includes(msg.channel.id)) return msg.channel.send(`Can't understand, ${msg.author}`);
-	return; // msg.channel.send(`Can't understand, ${msg.author}`);
+	return;
 }

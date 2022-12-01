@@ -1,9 +1,11 @@
 /* eslint-disable no-inline-comments */
 const { spawn_new_gems, messagify_board, delay, check_swap_command, execute_matches, add_replay_frame } = require('./../Bot_modules/shared_functions');
+const { PermissionsBitField } = require('discord.js');
 
 module.exports = {
 	name : ['swap'],
 	channel_permissions : 'SPECIFIC',
+	permission_requirement : PermissionsBitField.Flags.SendMessages,
 	async trigger(msg, args, current_game) {
 		if (current_game !== undefined && current_game.state !== 'stable') return;
 		if (args.length === 3) {

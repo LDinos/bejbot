@@ -2,10 +2,12 @@
 /* eslint-disable no-inline-comments */
 const emoji_help = require('./../Bot_modules/emoji_help.json');
 const { message_get_board } = require('./../Bot_modules/shared_functions');
+const { PermissionsBitField } = require('discord.js');
 
 module.exports = {
 	name : ['board'],
 	channel_permissions : 'SPECIFIC',
+	permission_requirement : PermissionsBitField.Flags.SendMessages,
 	async trigger(msg, args) {
 		if (args.length === 0) {msg.channel.send(emoji_help.help); return;}
 		const splitted_msg = msg.content.slice(6).trim().split('\n'); // 6 = +board command length (With prefix)
