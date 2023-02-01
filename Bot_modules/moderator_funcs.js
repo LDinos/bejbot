@@ -24,6 +24,10 @@ module.exports = {
 				else {
 					try {
 						user.roles.add(role);
+						const text = `${user.user.username} has been promoted to ${role.name}!`;
+						const channel = settings[guild.id].logs_channel_id;
+						guild.channels.cache.get(channel)?.send({ embeds : [text] });
+						console.log(text);
 					}
 					catch (error) {
 						console.error(error);
@@ -37,6 +41,18 @@ module.exports = {
 		const json = JSON.stringify(settings, null, 4);
 		fs.writeFile('./current_settings.json', json, 'utf8', err => {
 			if (err) console.log(err);
+			// else console.log('Autosaved settings file!');
 		});
+	},
+	update_settings_fileSync(settings) {
+		const json = JSON.stringify(settings, null, 4);
+		fs.writeFileSync('./current_settings.json', json, 'utf8', err => {
+			if (err) console.log(err);
+			// else console.log('Autosaved settings file!');
+		});
+	},
+	log_write(settings, guild, text) {
+		const channel = settings[guild.id].logs_channel_id;
+		guild.channels.cache.get(channel).send({ embeds : [text] });
 	},
 };

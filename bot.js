@@ -7,13 +7,15 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable quotes */
 /* eslint-disable no-inline-comments */
+
 const { Discord, Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const auth = require('./auth.json');
-const { increase_xp, check_for_levelup, update_settings_file } = require('./Bot_modules/moderator_funcs');
+const { increase_xp, check_for_levelup, update_settings_file, update_settings_fileSync } = require('./Bot_modules/moderator_funcs');
 const settings = fs.existsSync('./current_settings.json') ? require('./current_settings.json') : require('./default_settings.json');
 let current_games = {};
+let autosave_interval;
 const prefix = '+';
 const commandsPath = path.join(__dirname, "commands");
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -35,12 +37,25 @@ const bot = new Client({
 });
 bot.login(auth.token);
 
+process.addListener("SIGINT", stopEvent);
+process.addListener("SIGTERM", stopEvent);
+
+function stopEvent() {
+	clearInterval(autosave_interval);
+	console.log('Exiting and autosaving...');
+	update_settings_fileSync(settings);
+	process.exit();
+  }
+
 bot.on('ready', () => {
 	console.log("Welcome Back");
-	setInterval(() => update_settings_file(settings), 1000 * 20);
+	autosave_interval = setInterval(() => update_settings_file(settings), 1000 * 15);
 });
 
 bot.on('guildMemberAdd', member => { // When a new person joins the server
+	if (!settings[member.guild.id].users.hasOwnProperty(member.user.id)) {
+		settings[member.guild.id].users[member.user.id] = { current_xp : 0 };
+	}
 	const welcome = settings[member.guild.id].welcome_message;
 	const welcome_channel = settings[member.guild.id].welcome_channel_id;
 	const welcome_embed = new EmbedBuilder()
@@ -83,12 +98,15 @@ function run_command(command, msg, args) {
 	for(const cmd_data of commands) {
 		for(const cmd_name of cmd_data.name) {
 			if (command === cmd_name) {
-				if (!msg.member.permissions.has(cmd_data.permission_requirement)) return; // Does the user have the permission to type this command?
+				if (!msg.member.permissions.has(cmd_data.permission_requirement)) {
+					msg.reply('You do not have the appropriate permissions to use this command.');
+					return console.log(`${msg.member.user.username} is trying to use moderator command`); // Does the user have the permission to type this command?
+				}
 				if (cmd_data.channel_permissions === 'SPECIFIC') { // Does the bot have permission to type in this channel?
 					// Administrators can use bot commands in any channel
 					if (!specific_channels.includes(msg.channel.id) && !msg.member.permissions.has(PermissionsBitField.Flags.Administrator)) return; // If we are not allowed to write this command in this channel, don't say anything
 				}
-				return cmd_data.trigger(msg, args, current_game, current_games);
+				return cmd_data.trigger(msg, args, current_game, current_games, settings, bot);
 			}
 		}
 	}

@@ -3,13 +3,14 @@
         "specific_channels" : ["1042582468097749022", "808740551414513725", "808740184652120105", "808740229166923777", "410255110170607632"],
         "welcome_message" : " Welcome to Bejeweled Fans!\nPlease check the pinned message in welcome to view the rules of the server.\nIf you have any queries for it, feel free to ask a someone from Hypercube to Darksphere ranks to help you around.\nIf you came here looking for 'Dijeweled' , click here #dijeweled and check pins.\nIf you came here looking for the obsolete 'Dijeweled Multiplayer' or to find players to play in Dijeweled Remaster, click here #multiplayer-lobby and check pins.\nBe sure to stick around, you never know what you might come across that peaks your interest.\nSee also\nBejeweled Wiki at https://bejeweled.wikia.com/",
         "welcome_channel_id" : "328339420900098048",
+        "logs_channel_id" : "767223311511322634",
         "users" : {
             "228858212298915840" : {
                 "current_xp" : 999999
             }
         },
         "ranks" : {
-            "Coal" : 5,
+            "Coal" : 3,
             "Flame" : 50,
             "Lightning" : 400 
         },
@@ -18,8 +19,9 @@
     },
     "1033324046957412434" : {
         "specific_channels" : ["1047315121183141938"],
-        "welcome_message" : " Hey, good looking!",
+        "welcome_message" : " Welcome to Bejeweled Fans!\nPlease check the pinned message in welcome to view the rules of the server.\nIf you have any queries for it, feel free to ask a someone from Hypercube to Darksphere ranks to help you around.\nIf you came here looking for 'Dijeweled' , click here #dijeweled and check pins.\nIf you came here looking for the obsolete 'Dijeweled Multiplayer' or to find players to play in Dijeweled Remaster, click here #multiplayer-lobby and check pins.\nBe sure to stick around, you never know what you might come across that peaks your interest.\nSee also\nBejeweled Wiki at https://bejeweled.wikia.com/",
         "welcome_channel_id" : "1033324047431389245",
+        "logs_channel_id" : "767223311511322634",
         "users" : {},
         "ranks" : {
             "Test" : 5
