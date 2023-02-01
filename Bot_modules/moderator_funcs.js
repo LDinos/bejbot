@@ -25,8 +25,8 @@ module.exports = {
 					try {
 						user.roles.add(role);
 						const text = `${user.user.username} has been promoted to ${role.name}!`;
-						const channel = settings[guild.id].logs_channel_id;
-						guild.channels.cache.get(channel)?.send({ embeds : [text] });
+						/* const channel = settings[guild.id].logs_channel_id;
+						guild.channels.cache.get(channel)?.send({ embeds : [text] }); */
 						console.log(text);
 					}
 					catch (error) {
