@@ -1,3 +1,6 @@
+# Description
+A bot designed for the Bejeweled Fans server. It can be used to create board images, play bejeweled in discord and also manage the server.
+
 # Running the bot
 - You need an auth.json file that uses the bot authentication code which is hidden in the [Discord Developer Portal](https://discord.com/developers/applications) page of your application. 
 ```json
@@ -33,6 +36,7 @@ TLDR; Run the command in the 'Compiling' section, then ```npm install --build-fr
 - ```board_template.json```: A template game structure for when starting a game with ```+start_game```. Each channel has its own game
 - ```emoji_help```: Help string for a discord user when using ```+board```
 - ```help_table```: List of all commands for a discord user that used ```+help```
+- ```commands``` folder exports all the available commands
 
 # Discord Channel
 <a href="https://discord.gg/jSj2uKB">

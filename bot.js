@@ -67,7 +67,7 @@ bot.on('guildMemberAdd', member => { // When a new person joins the server
 
 bot.on('guildMemberRemove', member => { // When a person leaves the server
 	const welcome_channel = settings[member.guild.id].welcome_channel_id;
-    member.guild.channels.cache.get(welcome_channel).send({ content : `${member.user} has left the server.` });
+    member.guild.channels.cache.get(welcome_channel).send({ content : `${member.user.username} has left the server.` });
 });
 
 bot.on('messageCreate', async msg => {
